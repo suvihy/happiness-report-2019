@@ -1,7 +1,7 @@
 # happiness-report-2019
 A school project about World Happiness Report data. My first try with D3.js.
 
-Data source:Our World in Data, https://ourworldindata.org/happiness-and-life-satisfaction
+Data source: Our World in Data, https://ourworldindata.org/happiness-and-life-satisfaction
 
 Inspiration: The World Happiness Report and Our World in Data - wanted to see how the world happiness is evolved through decades
 
