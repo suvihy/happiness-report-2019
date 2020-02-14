@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <link rel="stylesheet" href="https://use.typekit.net/tzx4gwl.css">
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <title>World Happiness Trend</title>
+
+<style>
+
+    body{
+        font-family: adobe-caslon-pro, serif;
+        font-weight: 400;
+        font-style: normal;
+        font-size: 20pt;
+        color: white;
+        background: rgb(153,46,146);
+        background: linear-gradient(45deg, rgba(153,46,146,1) 49%, rgba(190,100,99,1) 79%, rgba(242,177,32,1) 100%);
+        margin-left: 10%;
+        margin-right: 10%;
+    }
+
+    .axis {
+        font-family: adobe-caslon-pro, serif;
+        font-weight: 400;
+        font-style: bold;
+        font-size: 14pt;
+        color:white;
+        padding-top: 5px;
+    }
+
+</style>
+
+</head>
+
+
+<body>
+
+    <script>
+
+        var margin = {top: 20, right: 10, bottom: 20, left: 10};
+        width = (1200 - margin.left - margin.right);
+        height = (1800 - margin.top - margin.bottom);
+
+        var title = "World Happiness Trend";
+
+            d3.select("body")
+                .append("h3")
+                .text(title);
+
+        var canvas = d3.select("body")
+            .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+        var bg = canvas.append("g").attr("id","bg");
+
+        var viz = canvas.append("g").attr("id","viz");
+
+ // The whole visualization inside the function
+
+        d3.csv("data/share-of-people-who-say-they-are-happy-Eurobarometer.csv").then(function (data){ 
+
+        // Go through all the years
+            var years = []; 
+            for (let i = 0; i < data.length; i++) {
+                years[i] = data[i].Year; 
+            }
+            
+            var newYears = [];
+            for (let i = parseInt(d3.min(years)); i <= d3.max(years); i++) {
+                newYears[i-d3.min(years)] = i;
+                }
+        
+           console.log(newYears);
+        // Get the min and max year
+           console.log(d3.max(years));
+           console.log(d3.min(years));
+
+        // Goes through all the percentages   
+            var values = [];
+            for (let i = 0; i < data.length; i++) {
+                values[i] = parseFloat(data[i].Perc); // If needed values[i] = parseInt(data[i].value); parseFloat
+            }
+
+        // Get the min and max percentage
+            console.log(d3.max(values));
+            console.log(d3.min(values));
+
+            var scale = d3.scaleLinear()
+                    .domain([d3.min(years), d3.max(years)])
+                    .range([0, height - 100]); 
+                
+            var scaleValue = d3.scaleLinear()
+                    .domain([0, 100]) // This scales the data from 0 to 100.
+                    .range([0 + 15, width - 50]);
+
+        // Create xAxis
+            var xAxis = d3.axisBottom()
+                    .scale(scaleValue)
+                    .tickFormat(function(d){ var p = d3.format('0')(d); return p+' %';}) // if you add just "%" the value is multiplied by 100.
+                    .tickSize(- height); //Adjusts the tick marks, you could also adjust number of ticks with .ticks(2) and give custom values .tickValues(0, 200, 400)
+
+        // Append group and insert X axis
+            bg.append("g")
+                    .attr("class", "axis") 
+                    .call(xAxis)
+                    .attr("transform", `translate(${0},${height - 60})`);
+
+                d3.selectAll(".tick line")
+                    .attr("stroke", "rgba(255, 255, 255, 0.2");
+
+                d3.select(".domain").remove();  
+
+
+        // Draw the data points: y = start of the year, scale the year ordinal value = i, x = value
+        viz.selectAll("line")
+                .data(data)
+                .enter()
+                .append("line")
+                    .style("stroke", "rgba(255, 255, 255, 0.7")
+                    .style("stroke-width", 6)
+                    .attr("y1", function (d) { return (scale(d.Year)) } )
+                    .attr("x1", function (d) { return (scaleValue(d.Perc)) } )
+                    .attr("y2", function (d) { return (scale(d.Year) + 35) } ) // 35 = the height of the line
+                    .attr("x2", function (d) { return (scaleValue(d.Perc)) } )
+                    .on('mouseover', function(d) { 
+                        var currentEntity = d.Entity;
+
+                        viz.selectAll("line")
+                        .data(data).style("stroke", function(d){ 
+                            if (d.Entity == currentEntity) {  // If I wanted to add transition, where should I put it?
+                                console.log(d.Entity)
+                                return "#f2b120";
+                            }
+                            else {
+                                return "rgba(255, 255, 255, 0.25";
+                            }
+                        }).style("stroke-width", function(d){
+                            if (d.Entity == currentEntity) {
+                                console.log(d.Entity)
+                                return 8;
+                            }
+                            else {
+                                return 6;
+                            }
+                        })
+                    })
+
+                    .on('click', function(d){
+                        viz.selectAll("line")
+                        .data(data)
+                        .enter()
+                        .append("text")
+                            .attr("text-anchor", "middle")
+                            .attr("x", function(d, i) { return d.x }).attr("y", function(d) {return d.y })
+                            .text(function(d){
+                            if (d.Entity == currentEntity) {
+                                return d.Entity;
+                            }
+                            else { }
+                            })
+
+                    })
+
+                    .on('mouseout', function(d) {
+                        /* d3.select(this).style("stroke-width", 6).style("stroke", "black").style("opacity", 0.4);
+                        console.log('out'); */
+                        viz.selectAll("line")
+                        .data(data).style("stroke", "rgba(255, 255, 255, 0.7").style("stroke-width", 6);
+
+                    });
+
+            // Create yAxis
+                var yAxis = d3.axisRight()
+                    .scale(scale)
+                    .ticks(41)
+                    .tickSize(width); 
+
+                d3.select("svg").append("g")
+                    .attr("class", "axis")
+                    .call(yAxis)
+                    .attr("transform","translate(16, -2)"); 
+                
+                d3.selectAll(".tick line")
+                    .attr("stroke", "rgba(255, 255, 255, 0.2");
+
+                d3.select(".domain").remove();
+
+
+            // Set year labels to the left
+                viz.selectAll("text")
+                    .data(years)
+                    .enter()
+                    .append("text")
+                    .style("fill", "white")
+                        .attr("text-anchor", "middle")
+                        .text(function(d, i) { return newYears[i]})
+                        .attr("x", 45)
+                        .attr("y", function(d, i) {return i*38.5 +30 }); 
+                
+        }); 
+
+    </script>
+    
+</body>
+</html>
